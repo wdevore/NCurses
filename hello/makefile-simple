@@ -1,0 +1,9 @@
+CC = gcc
+CFLAGS = -Wall -Wextra -g
+LDLIBS = -lncurses
+
+SOURCE = goodbye.cpp
+
+goodbye.o: $(SOURCE) 
+	$(CC) $(CFLAGS) $(SOURCE) -o hello $(LDLIBS)
+
