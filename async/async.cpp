@@ -50,7 +50,6 @@ int main() {
 		count++;
 		ch = getch();
 
-		attrset(A_NORMAL);
 		move(3,20);
 		addch('>');
 
@@ -69,7 +68,7 @@ int main() {
 			//	delch();
 			//}
 			buf.clear();
-		} else if (ch >= 'a' && ch <= 'z') {
+		} else if (ch >= ' ' && ch < '~') { // Allow all normal keys a-z,A-Z...
 			col++;
 			move(3, col);
 			addch(ch | A_NORMAL);
