@@ -3,13 +3,11 @@ CFLAGS = -Wall -Wextra -g
 LDLIBS = -lncurses -lstdc++
 
 PROG = console
-SOURCE = $(PROG).cpp
+SOURCE = $(PROG).cpp \
+	show.cpp
 
 clean:
 	$(RM) *.o $(PROG)
 
-%.o: %.cpp
-	$(CC) $(CFLAGS) -c $^ -o $@
-
-$(PROG): $(PROG).o 
+$(PROG): console.o show.o
 	$(CC) $(CFLAGS) $^ -o $@ $(LDLIBS)

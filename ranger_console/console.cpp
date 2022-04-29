@@ -2,23 +2,12 @@
 #include <list>
 #include <iostream>
 
+#include "show.h"
+
 #define COLOR_DARK_GRAY 20
 #define COLOR_ORANGE 21
 
-void showCPUStatus(std::string& cpu_status) {
-	move(1,1);
-	printw("CPU Status: %s\n", cpu_status.c_str());
-}
-
-void showTimeStep(int timeStep) {
-	move(2,1);
-	printw("timeStep: %d", timeStep);
-}
-
-void showTermCaret() {
-	move(LINES-1, 1);
-	addch('>');
-}
+#define ESC '\x1B'
 
 void moveCaretToEndl(int col) {
 	move(LINES-1, col);
@@ -63,29 +52,31 @@ int main() {
 	char ch;
 	int col = 2;
 	bool cycleCountEnabled = false;
-	int halfCycleCount = 0;
+	int stepCycleCount = 0;
 	int stepCnt = 0;
 
-	cbreak();
+	int regFile[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
+//	cbreak();
 	nodelay(stdscr, true);
+	// We don't want characters to appear where ever the cursor is at,
+	// only at the moment we control.
 	noecho();
 
 	std::string buf;
 	std::string lastCmd;
 	std::string cpu_status = "Stopped";
+	WINDOW *helpWin;
+	bool helpWinVisible = false;
 
 	while (looping) {
 		attrset(A_NORMAL);
-
-		showCPUStatus(cpu_status);
-		showTimeStep(timeStep);
 
 		napms(10);
 
 		if (running) {
 			timeStep = stepSimulation(timeStep);
 			stepCnt++;
-			if (cycleCountEnabled && stepCnt >= halfCycleCount) {
+			if (cycleCountEnabled && stepCnt >= stepCycleCount) {
 				running = false;
 				cycleCountEnabled = false;
 			}
@@ -93,17 +84,28 @@ int main() {
 
 		ch = getch();
 
-		showTermCaret();
-
-		if (ch == '`') {
+		if (ch == ESC) {
+			// Close popup window
+			if (helpWin != NULL) {
+				delwin(helpWin);
+				touchwin(stdscr);
+				helpWinVisible = false;
+			}
+		} else if (ch == '`') {
 			looping = false;
 			continue;
 		} else if (ch == '\n') {
 			col = 2;
 			move(LINES-1,col);
 
+			// If the user hit return on a blank line then repeat previous command
 			if (buf == "") {
 				buf = lastCmd;
+			}
+
+			// If there was no previous command then skip everything
+			if (buf == "") {
+				continue;
 			}
 
 			if (buf == "run" || buf == "r") {
@@ -112,24 +114,48 @@ int main() {
 			} else if (buf == "stop" || buf == "s") {
 				cpu_status = "Stopped";
 				running = false;
-			} else if (buf == "exit") {
+			} else if (buf == "exit" || buf == "e") {
 				looping = false;
 				continue;
 			} else if (buf == "half") {
 				stepCnt = 0;
 				running = true;
-				halfCycleCount = 10;
+				stepCycleCount = 10;
 				cycleCountEnabled = true;
 			} else if (buf == "full") {
 				stepCnt = 0;
 				running = true;
-				halfCycleCount = 20;
+				stepCycleCount = 20;
 				cycleCountEnabled = true;
+			} else if (buf == "step" || buf == "t") {
+				stepCnt = 0;
+				running = true;
+				stepCycleCount = 1;
+				cycleCountEnabled = true;
+			} else if (buf == "help" || buf == "h") {
+				// Display help window
+				helpWin = newwin(20, 50, 10, 40);
+				if (helpWin != NULL) {
+					wattrset(helpWin, A_BOLD);
+					mvwaddstr(helpWin, 1,1,"         Help\n");
+					wattrset(helpWin, A_NORMAL);
+					waddstr(helpWin, " run/r = run simulation\n");
+					waddstr(helpWin, " stop/s = stop simulation\n");
+					waddstr(helpWin, " exit/e = exit to console\n");
+					waddstr(helpWin, " half = half clock cycle\n");
+					waddstr(helpWin, " full = full clock cycle\n");
+					wborder(helpWin, '|', '|', '-', '-', '.','.','.','.');
+					wrefresh(helpWin);
+					helpWinVisible = true;
+//					napms(2000);
+				} else {
+					mvaddstr(10, 10, "oops");
+				}
 			}
 
 			lastCmd = buf;
 			// Clear command line
-			addstr("                      ");
+			clrtoeol();
 			buf.clear();	// Clear command now that we have used it
 		} else if (ch >= ' ' && ch < '~') { // Allow all normal keys a-z,A-Z...
 			col++;
@@ -138,10 +164,26 @@ int main() {
 			buf.push_back(ch);
 		}
 
-		moveCaretToEndl(col+1);
+		if (!helpWinVisible) {
+			showCPUStatus(cpu_status);
+			showTimeStep(timeStep);
 
-		refresh();
+			showTermCaret();
+			showPC(3, 128);
+
+			showPCPrior(4, 1024);
+			showIR(5, 128+64);
+			showALUFlags(6, 9);
+			showRegFile(3, regFile);
+
+			moveCaretToEndl(col+1);
+
+			refresh();
+		}
 	}
+
+	if (helpWin != NULL)
+		delwin(helpWin);
 
 	endwin();
 
