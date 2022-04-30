@@ -20,41 +20,24 @@ std::string int_to_bin(int v) {
 
 void showCPUStatus(std::string& cpu_status) {
 	move(1,1);
-	printw("CPU Status: %s\n", cpu_status.c_str());
+	attrset(A_NORMAL);
+	printw("CPU Status: ");
+	attrset(A_BOLD);
+	printw("%s\n", cpu_status.c_str());
 }
 
 void showTimeStep(int timeStep) {
 	move(2,1);
-	printw("timeStep: %d", timeStep);
+	attrset(A_NORMAL);
+	printw("timeStep: ");
+	attrset(A_BOLD);
+	printw("%d", timeStep);
 }
 
 void showTermCaret() {
 	mvaddch(LINES-1, 1, '>');
 }
 
-void showPC(int row, int value) {
-	move(row,1);
-	attrset(A_NORMAL);
-	printw("PC: ");
-	attrset(A_BOLD);
-	printw("%s", int_to_hex(value).c_str());
-}
-
-void showPCPrior(int row, int value) {
-	move(row,1);
-	attrset(A_NORMAL);
-	printw("PCPrior: ");
-	attrset(A_BOLD);
-	printw("%s", int_to_hex(value).c_str());
-}
-
-void showIR(int row, int value) {
-	move(row,1);
-	attrset(A_NORMAL);
-	printw("IR: ");
-	attrset(A_BOLD);
-	printw("%s", int_to_hex(value).c_str());
-}
 
 void showALUFlags(int row, int value) {
 	move(row,1);
@@ -85,6 +68,10 @@ void showALUFlags(int row, int value) {
 }
 
 void showRegFile(int row, int values[32]) {
+	move(row,40);
+	addstr("--- RegFile ---");
+	row++;
+
 	for (int i = 0; i < 32; i++) {
 		move(row,40);
 		attrset(A_NORMAL);
@@ -96,4 +83,18 @@ void showRegFile(int row, int values[32]) {
 		printw("%s", int_to_hex(values[i]).c_str());
 		row++;
 	}
+}
+
+void showRegister(int row, const std::string& header,  int value) {
+	move(row,1);
+	attrset(A_NORMAL);
+	printw("%s: ", header.c_str());
+	attrset(A_BOLD);
+	printw("%s", int_to_hex(value).c_str());
+}
+
+// Show mem dump from A to B and ascii
+void showMemory(int fromAddr, int toAddr) {
+	// Addr           data          Ascii
+	// 0x0000000a     0x01010101    hell
 }

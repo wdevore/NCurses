@@ -56,7 +56,7 @@ int main() {
 	int stepCnt = 0;
 
 	int regFile[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
-//	cbreak();
+
 	nodelay(stdscr, true);
 	// We don't want characters to appear where ever the cursor is at,
 	// only at the moment we control.
@@ -117,6 +117,11 @@ int main() {
 			} else if (buf == "exit" || buf == "e") {
 				looping = false;
 				continue;
+			} else if (buf == "reset") {
+				running = true;
+				stepCycleCount = 40;
+				cycleCountEnabled = true;
+				// Enable cpu reset pin and wait for reset-complete
 			} else if (buf == "half") {
 				stepCnt = 0;
 				running = true;
@@ -169,12 +174,15 @@ int main() {
 			showTimeStep(timeStep);
 
 			showTermCaret();
-			showPC(3, 128);
 
-			showPCPrior(4, 1024);
-			showIR(5, 128+64);
-			showALUFlags(6, 9);
-			showRegFile(3, regFile);
+			showRegister(3, "PC", 128);
+			showRegister(4, "PCPrior", 1024);
+			showRegister(5, "IR", 128+64);
+			showRegister(6, "ALUOut", 1234);
+			showRegister(7, "MDR", 999);
+			showRegister(8, "RS1", 666);
+			showRegister(9, "RS2", 777);
+			showRegFile(1, regFile);
 
 			moveCaretToEndl(col+1);
 
