@@ -76,7 +76,7 @@ int main() {
 	// This enables aysnc input. It allows the simulator to run while capture key input.
 	nodelay(stdscr, true);
 	// We don't want characters to appear where ever the cursor is at,
-	// only at the moment we control.
+	// only at the area we control.
 	noecho();
 
 	std::string buf;
