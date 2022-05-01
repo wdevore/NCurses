@@ -1,13 +1,21 @@
 #include <ncurses.h>
 #include <list>
 #include <iostream>
+#include <vector>
+#include <sstream>
 
 #include "show.h"
+#include "utils.h"
 
 #define COLOR_DARK_GRAY 20
 #define COLOR_ORANGE 21
 
 #define ESC '\x1B'
+
+void clearCmdLine() {
+	move(LINES-1, 2);
+	clrtoeol();
+}
 
 void moveCaretToEndl(int col) {
 	move(LINES-1, col);
@@ -55,7 +63,15 @@ int main() {
 	int stepCycleCount = 0;
 	int stepCnt = 0;
 
-	int regFile[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
+	long int regFile[] = {0xdeedbeaf,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
+	long int mem[] = {
+		0x48454c50,0xc0debabe,14,15,16,17,18,19,20,128,129,130,131,132,133,
+		0x4e4f5045,135,256,257,258,259,2,3,4,5,6,7,8,9,10,11,12,13,128,129,130,131,132,133,128,129,130,131,132,133,
+		0x534f5550,135,256,257,258,777,7,7,7,5,6,8,8,8,
+		0x44495254,15,16,17,18,19,20,128,129,130,555,444,333,
+		0x454e4421
+	};
+	int lenMem = sizeof(mem)/sizeof(mem[0]);
 
 	nodelay(stdscr, true);
 	// We don't want characters to appear where ever the cursor is at,
@@ -67,6 +83,11 @@ int main() {
 	std::string cpu_status = "Stopped";
 	WINDOW *helpWin;
 	bool helpWinVisible = false;
+
+	long int fromAddr = 0;
+	long int toAddr = 20;
+//	long int prevFromAddr = fromAddr;
+//	long int prevToAddr = toAddr;
 
 	while (looping) {
 		attrset(A_NORMAL);
@@ -137,6 +158,21 @@ int main() {
 				running = true;
 				stepCycleCount = 1;
 				cycleCountEnabled = true;
+			} else if (buf.rfind("mem", 0) == 0) {
+				// Extract from/to values
+				std::vector<std::string> fields = split_string(buf);
+				if (fields.size() > 1) {
+					if (fields[1].find("0x") != std::string::npos)
+						fromAddr = hex_string_to_int(fields[1]);
+					else
+						fromAddr = string_to_int(fields[1]);
+				} else {
+					fromAddr = 0;
+				}
+				clearMemory();
+				showMemory(fromAddr, lenMem, mem);
+			} else if (buf == "clear") {
+				clearMemory();
 			} else if (buf == "help" || buf == "h") {
 				// Display help window
 				helpWin = newwin(20, 50, 10, 40);
@@ -152,15 +188,13 @@ int main() {
 					wborder(helpWin, '|', '|', '-', '-', '.','.','.','.');
 					wrefresh(helpWin);
 					helpWinVisible = true;
-//					napms(2000);
 				} else {
 					mvaddstr(10, 10, "oops");
 				}
 			}
 
 			lastCmd = buf;
-			// Clear command line
-			clrtoeol();
+			clearCmdLine();
 			buf.clear();	// Clear command now that we have used it
 		} else if (ch >= ' ' && ch < '~') { // Allow all normal keys a-z,A-Z...
 			col++;
@@ -182,6 +216,7 @@ int main() {
 			showRegister(7, "MDR", 999);
 			showRegister(8, "RS1", 666);
 			showRegister(9, "RS2", 777);
+			showALUFlags(10, 9); 
 			showRegFile(1, regFile);
 
 			moveCaretToEndl(col+1);
