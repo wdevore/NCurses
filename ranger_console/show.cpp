@@ -57,7 +57,7 @@ void showALUFlags(int row, int value) {
 }
 
 void showRegFile(int row, long int values[32]) {
-	int col = 40;
+	int col = 50;
 	mvaddstr(row, col, "--- RegFile ---");
 	row++;
 
@@ -80,6 +80,14 @@ void showRegister(int row, const std::string& header,  int value) {
 	printw("%s: ", header.c_str());
 	attrset(A_BOLD);
 	printw("%s", int_to_hex(value, "0x").c_str());
+}
+
+void showRegisterBin(int row, const std::string& header,  int value) {
+	move(row,1);
+	attrset(A_NORMAL);
+	printw("%s: ", header.c_str());
+	attrset(A_BOLD);
+	printw("%s", int_to_bin(value, "").c_str());
 }
 
 // Clear memory display area

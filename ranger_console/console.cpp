@@ -73,6 +73,7 @@ int main() {
 	};
 	int lenMem = sizeof(mem)/sizeof(mem[0]);
 
+	// This enables aysnc input. It allows the simulator to run while capture key input.
 	nodelay(stdscr, true);
 	// We don't want characters to appear where ever the cursor is at,
 	// only at the moment we control.
@@ -86,8 +87,7 @@ int main() {
 
 	long int fromAddr = 0;
 	long int toAddr = 20;
-//	long int prevFromAddr = fromAddr;
-//	long int prevToAddr = toAddr;
+	int selectedReg = 0;
 
 	while (looping) {
 		attrset(A_NORMAL);
@@ -158,6 +158,13 @@ int main() {
 				running = true;
 				stepCycleCount = 1;
 				cycleCountEnabled = true;
+			} else if (buf.rfind("sel", 0) == 0) {
+				std::vector<std::string> fields = split_string(buf);
+				if (fields.size() > 1) {
+					selectedReg = string_to_int(fields[1]);
+				} else {
+					selectedReg = 0;
+				}
 			} else if (buf.rfind("mem", 0) == 0) {
 				// Extract from/to values
 				std::vector<std::string> fields = split_string(buf);
@@ -178,13 +185,17 @@ int main() {
 				helpWin = newwin(20, 50, 10, 40);
 				if (helpWin != NULL) {
 					wattrset(helpWin, A_BOLD);
-					mvwaddstr(helpWin, 1,1,"         Help\n");
+					mvwaddstr(helpWin, 1,1,"---------- Help -----------\n");
 					wattrset(helpWin, A_NORMAL);
 					waddstr(helpWin, " run/r = run simulation\n");
 					waddstr(helpWin, " stop/s = stop simulation\n");
 					waddstr(helpWin, " exit/e = exit to console\n");
 					waddstr(helpWin, " half = half clock cycle\n");
 					waddstr(helpWin, " full = full clock cycle\n");
+					waddstr(helpWin, " step = steps a single time unit\n");
+					waddstr(helpWin, " mem = mem <fromAddr>\n");
+					waddstr(helpWin, " reset = reset CPU\n");
+					waddstr(helpWin, " clear = clear memory display area\n");
 					wborder(helpWin, '|', '|', '-', '-', '.','.','.','.');
 					wrefresh(helpWin);
 					helpWinVisible = true;
@@ -218,7 +229,7 @@ int main() {
 			showRegister(9, "RS2", 777);
 			showALUFlags(10, 9); 
 			showRegFile(1, regFile);
-
+			showRegisterBin(11, "Reg", regFile[selectedReg]);
 			moveCaretToEndl(col+1);
 
 			refresh();

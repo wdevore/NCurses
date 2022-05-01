@@ -22,6 +22,12 @@ std::string int_to_hex(long int v, const std::string& header) {
 	return stream.str();
 }
 
+std::string int_to_bin(long int v, const std::string& header) {
+	std::stringstream stream;
+	stream << std::bitset<32>(v);
+	return stream.str();
+}
+
 std::string int_to_bin(long int v) {
 	std::stringstream stream;
 	stream << std::bitset<4>(v);
