@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <iomanip>
 
 #include "show.h"
 #include "utils.h"
@@ -88,6 +89,7 @@ int main() {
 	long int fromAddr = 0;
 	long int toAddr = 20;
 	int selectedReg = 0;
+	std::string regLabel = "Reg: x0";
 
 	while (looping) {
 		attrset(A_NORMAL);
@@ -165,6 +167,9 @@ int main() {
 				} else {
 					selectedReg = 0;
 				}
+				std::stringstream stream;
+				stream << "Reg: x" << selectedReg;
+				regLabel = stream.str();
 			} else if (buf.rfind("mem", 0) == 0) {
 				// Extract from/to values
 				std::vector<std::string> fields = split_string(buf);
@@ -187,6 +192,7 @@ int main() {
 					wattrset(helpWin, A_BOLD);
 					mvwaddstr(helpWin, 1,1,"---------- Help -----------\n");
 					wattrset(helpWin, A_NORMAL);
+					
 					waddstr(helpWin, " run/r = run simulation\n");
 					waddstr(helpWin, " stop/s = stop simulation\n");
 					waddstr(helpWin, " exit/e = exit to console\n");
@@ -194,8 +200,10 @@ int main() {
 					waddstr(helpWin, " full = full clock cycle\n");
 					waddstr(helpWin, " step = steps a single time unit\n");
 					waddstr(helpWin, " mem = mem <fromAddr>\n");
+					waddstr(helpWin, " sel = sel #  <- to show Reg in bin form\n");
 					waddstr(helpWin, " reset = reset CPU\n");
 					waddstr(helpWin, " clear = clear memory display area\n");
+
 					wborder(helpWin, '|', '|', '-', '-', '.','.','.','.');
 					wrefresh(helpWin);
 					helpWinVisible = true;
@@ -229,7 +237,7 @@ int main() {
 			showRegister(9, "RS2", 777);
 			showALUFlags(10, 9); 
 			showRegFile(1, regFile);
-			showRegisterBin(11, "Reg", regFile[selectedReg]);
+			showRegisterBin(11, regLabel, regFile[selectedReg]);
 			moveCaretToEndl(col+1);
 
 			refresh();
